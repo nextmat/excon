@@ -13,11 +13,22 @@ require 'excon/response'
 module Excon
 
   unless const_defined?(:VERSION)
-    VERSION = '0.3.6'
+    VERSION = '0.3.7'
   end
 
   unless const_defined?(:CHUNK_SIZE)
     CHUNK_SIZE = 1048576 # 1 megabyte
+  end
+
+  # Status of ssl peer verification
+  @ssl_verify_peer = true
+  def self.ssl_verify_peer
+    @ssl_verify_peer
+  end
+
+  # change the status of ssl peer verification
+  def self.ssl_verify_peer=(new_ssl_verify_peer)
+    @ssl_verify_peer = new_ssl_verify_peer
   end
 
   # @see Connection#initialize
