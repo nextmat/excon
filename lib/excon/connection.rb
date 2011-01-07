@@ -214,6 +214,12 @@ module Excon
           :host => params[:proxy_host],
           :port => params[:proxy_port] || 8080
         }
+      elsif ENV['http_proxy']
+        host, port = ENV['http_proxy'].split(':')
+        {
+          :host => host,
+          :port => port || 8080
+        }
       else
         nil
       end
