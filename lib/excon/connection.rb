@@ -5,6 +5,7 @@ module Excon
 
     CR_NL     = "\r\n"
     HTTP_1_1  = " HTTP/1.1\r\n"
+    PROXY_DEFAULT_PORT = 8080
 
     # Initializes a new Connection instance
     #   @param [String] url The destination URL
@@ -228,13 +229,13 @@ module Excon
       if params[:proxy_host]
         {
           :host => params[:proxy_host],
-          :port => params[:proxy_port] || 8080
+          :port => params[:proxy_port] || PROXY_DEFAULT_PORT
         }
       elsif ENV['http_proxy']
         host, port = ENV['http_proxy'].split(':')
         {
           :host => host,
-          :port => port || 8080
+          :port => port || PROXY_DEFAULT_PORT
         }
       else
         nil
