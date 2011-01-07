@@ -16,6 +16,8 @@ module Excon
     #     @option params [Fixnum] :port The port on which to connect, to the destination host
     #     @option params [Hash]   :query Default query; appended to the 'scheme://host:port/path/' in the form of '?key=value'. Will only be used if params[:query] is not supplied to Connection#request
     #     @option params [String] :scheme The protocol; 'https' causes OpenSSL to be used
+    #     @option params [String] :proxy_host The proxy's reachable DNS name or IP address
+    #     @option params [Fixnum] :proxy_port The port to connect to on the proxy
     def initialize(url, params = {})
       uri = URI.parse(url)
       @connection = {
@@ -26,6 +28,7 @@ module Excon
         :query    => uri.query,
         :scheme   => uri.scheme
       }.merge!(params)
+      @proxy = proxy_settings(params)
       @socket_key = "#{@connection[:host]}:#{@connection[:port]}"
       reset
     end
@@ -53,7 +56,8 @@ module Excon
         end
 
         # start with "METHOD /path"
-        request = params[:method].to_s.upcase << ' ' << params[:path]
+        request = params[:method].to_s.upcase << ' '
+        request << (@proxy ? sanitized_uri(params).to_s : params[:path])
 
         # add query to path, if there is one
         case params[:query]
@@ -152,7 +156,7 @@ module Excon
     private
 
     def connect
-      new_socket = TCPSocket.open(@connection[:host], @connection[:port])
+      new_socket = open_socket
 
       if @connection[:scheme] == 'https'
         # create ssl context
@@ -176,6 +180,15 @@ module Excon
 
       new_socket
     end
+    
+    def open_socket
+      if @proxy
+        socket = TCPSocket.open(@proxy[:host], @proxy[:port])
+      else
+        socket = TCPSocket.open(@connection[:host], @connection[:port])
+      end
+      socket
+    end
 
     def closed?
       sockets[@socket_key] && sockets[@socket_key].closed?
@@ -190,6 +203,22 @@ module Excon
 
     def sockets
       Thread.current[:_excon_sockets] ||= {}
+    end
+    
+    def proxy_settings(params)
+      if params[:proxy_host]
+        {
+          :host => params[:proxy_host],
+          :port => params[:proxy_port] || 8080
+        }
+      else
+        nil
+      end
+    end
+    
+    def sanitized_uri(request_params)
+      hostspec = "#{request_params[:scheme]}://#{request_params[:host]}:#{request_params[:port]}"
+      URI.join(hostspec, request_params[:path] || '')
     end
 
   end
