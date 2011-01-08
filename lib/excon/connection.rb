@@ -98,8 +98,7 @@ module Excon
           0
         end
         
-        params[:headers]['Accept'] = '*/*'
-        params[:headers]['Proxy-Connection'] = 'Keep-Alive' if @proxy
+        params[:headers]['Proxy-Connection'] ||= 'Keep-Alive' if @proxy
 
         # add headers to request
         for key, values in params[:headers]
