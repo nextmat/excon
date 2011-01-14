@@ -5,7 +5,6 @@ module Excon
 
     CR_NL     = "\r\n"
     HTTP_1_1  = " HTTP/1.1\r\n"
-    PROXY_DEFAULT_PORT = 8080
 
     # Initializes a new Connection instance
     #   @param [String] url The destination URL
@@ -17,8 +16,7 @@ module Excon
     #     @option params [Fixnum] :port The port on which to connect, to the destination host
     #     @option params [Hash]   :query Default query; appended to the 'scheme://host:port/path/' in the form of '?key=value'. Will only be used if params[:query] is not supplied to Connection#request
     #     @option params [String] :scheme The protocol; 'https' causes OpenSSL to be used
-    #     @option params [String] :proxy_host The proxy's reachable DNS name or IP address
-    #     @option params [Fixnum] :proxy_port The port to connect to on the proxy
+    #     @option params [String] :proxy Proxy server; e.g. 'http://myproxy.com:8888'
     def initialize(url, params = {})
       uri = URI.parse(url)
       @connection = {
@@ -29,7 +27,7 @@ module Excon
         :query    => uri.query,
         :scheme   => uri.scheme
       }.merge!(params)
-      @proxy = proxy_settings(params)
+      setup_proxy(params[:proxy]) if params[:proxy]
       @socket_key = '' << @connection[:host] << ':' << @connection[:port].to_s
       reset
     end
@@ -224,15 +222,14 @@ module Excon
       Thread.current[:_excon_sockets] ||= {}
     end
     
-    def proxy_settings(params)
-      if params[:proxy_host]
-        {
-          :host => params[:proxy_host],
-          :port => params[:proxy_port] || PROXY_DEFAULT_PORT
-        }
-      else
-        nil
-      end
+    def setup_proxy(proxy)
+      proxy = 'http://' << proxy unless proxy.index('://')
+      uri = URI.parse(proxy)
+      @proxy = {
+        :host     => uri.host,
+        :port     => uri.port,
+        :scheme   => uri.scheme
+      }
     end
     
     def sanitized_uri(request_params)
