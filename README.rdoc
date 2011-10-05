@@ -2,7 +2,7 @@
 
 Http(s) EXtended CONnections
 
-[<img src="https://secure.travis-ci.org/geemus/excon.png?branch=master" title="Travis CI build status" />](http://travis-ci.org/geemus/excon)
+{<img src="http://travis-ci.org/geemus/excon.png" />}[http://travis-ci.org/geemus/excon]
 
 == Getting Started
 
