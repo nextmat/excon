@@ -10,6 +10,7 @@ Shindo.tests('Excon request idempotencey') do
     run_count = 0
     Excon.stub({:method => :get}) { |params|
       run_count += 1
+      puts "run_count => #{run_count}"
       if run_count < 4 # First 3 calls fail.
         raise Excon::Errors::SocketError.new(Exception.new "Mock Error")
       else
